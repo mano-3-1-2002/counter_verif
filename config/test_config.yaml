@@ -1,0 +1,32 @@
+#=========================================================
+# Common Defaults
+#=========================================================
+
+defaults: &defaults
+  verbosity: UVM_MEDIUM
+  timeout_ns: 1000
+
+#=========================================================
+# Test Configuration
+#=========================================================
+
+tests:
+
+  - name: test1
+    <<: *defaults
+    seed: 1
+
+  - name: test2
+    <<: *defaults
+    seed: 10
+    verbosity: UVM_HIGH
+
+  - name: test3
+    <<: *defaults
+    seed: 25
+    timeout_ns: 2000
+
+  - name: test4
+    <<: *defaults
+    seed: 100
+    verbosity: UVM_LOW

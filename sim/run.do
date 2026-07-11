@@ -3,10 +3,8 @@
 #===========================================================
 
 # Add all signals in the design
-add wave -r sim:/*
-
+add wave -r sim:/counter_tb/*
 # Run simulation until completion
 run -all
 
-# Quit simulator
-quit -f
+exit

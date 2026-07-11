@@ -17,14 +17,12 @@ PYTHON  = python3
 RTL_DIR     = ../rtl
 TB_DIR      = ../tb
 LOG_DIR     = ../logs
-CONFIG_DIR  = ../config
-SCRIPT_DIR  = ../scripts
 WORK_LIB    = work
 
 #-----------------------------
 # Source Files
 #-----------------------------
-RTL_SRC = $(RTL_DIR)/counter.sv
+RTL_SRC = $(RTL_DIR)/counter_rtl.sv
 TB_SRC  = $(TB_DIR)/counter_tb.sv
 
 #-----------------------------
@@ -39,18 +37,18 @@ OPT_DESIGN = counter_tb_opt
 TESTNAME ?= test1
 SEED     ?= 1
 
-# Optional compile arguments
+# Optional compile options
 VLOG_ARGS ?=
 
 #-----------------------------
 # Phony Targets
 #-----------------------------
-.PHONY: all lib compile opt sim regress clean
+.PHONY: all lib compile opt sim regress_sim regress clean
 
 all: sim
 
 #===========================================================
-# Create Questa Work Library
+# Create Work Library
 #===========================================================
 lib:
 	@mkdir -p $(LOG_DIR)
@@ -71,11 +69,10 @@ compile: lib
 # Optimize Design
 #===========================================================
 opt: compile
-	$(VOPT) work.$(TOP) \
-	-o $(OPT_DESIGN)
+	$(VOPT) work.$(TOP) -o $(OPT_DESIGN)
 
 #===========================================================
-# Run Simulation
+# GUI Simulation (Single Test)
 #===========================================================
 sim: opt
 	$(VSIM) \
@@ -86,13 +83,30 @@ sim: opt
 	-l $(LOG_DIR)/$(TESTNAME).log
 
 #===========================================================
-# Regression
+# Console Simulation (Regression)
 #===========================================================
-regress:
-	$(PYTHON) $(SCRIPT_DIR)/run_regression.py
+regress_sim: opt
+	$(VSIM) \
+	-c \
+	$(OPT_DESIGN) \
+	-sv_seed $(SEED) \
+	+TESTNAME=$(TESTNAME) \
+	-l $(LOG_DIR)/$(TESTNAME).log \
+	-do "run -all; exit"
 
 #===========================================================
-# Cleanup
+# Run Regression + Generate Reports
+#===========================================================
+regress:
+	@echo "======================================"
+	@echo " Running Regression"
+	@echo "======================================"
+	@cd .. && \
+	$(PYTHON) scripts/run_regression.py && \
+	$(PYTHON) scripts/log_analyzer.py
+
+#===========================================================
+# Clean Generated Files
 #===========================================================
 clean:
 	rm -rf work
