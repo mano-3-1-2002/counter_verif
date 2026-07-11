@@ -7,6 +7,7 @@ module counter_tb;
   logic[3:0] count;
   logic [3:0] exp_count;
   int error_count = 0;
+  string testname;
 
   counter dut (
 	  .clk(clk),
@@ -20,10 +21,17 @@ module counter_tb;
     always #5 clk = ~clk;      // BUG-1: half-period should be #5 for a 10ns clock
 
     initial begin
+        // Read TESTNAME passed from the Makefile.
+        // Example:
+        // make sim TESTNAME=test1 SEED=1
+        if (!$value$plusargs("TESTNAME=%s", testname))
+            testname = "default_test";
+
+        $display("UVM_INFO: Running Test = %s", testname);
 	    rst_n = 0;
 	    en = 0;
 	    up_down = 1;
-	    exp_count = 4'b0000;:set background?
+	    exp_count = 4'b0000;
 
 	    #20 rst_n = 1;      // BUG-2: reset released too early, should hold for #20 (2cycles)
 
@@ -45,10 +53,10 @@ module counter_tb;
 			    error_count++;
 		    end
 	    end
-	    if(error_count==0)
-		    $display("TEST_CASE: counter_test RESULT: PASSED");
-	    else
-		    $display("TEST_CASE: counter_test RESULT : FAILED");
+	  if (error_count == 0)
+                $display("TEST_CASE: %s RESULT : PASSED", testname);
+          else
+                $display("TEST_CASE: %s RESULT : FAILED", testname); 
 	    $display("UVM_WARNING: End of test reached, review waveform for timing");
 	    $finish;
     end
